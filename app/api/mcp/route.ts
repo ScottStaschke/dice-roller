@@ -142,7 +142,7 @@ const handler = createMcpHandler(
       }
     );
   },
-  { name: 'mcp-dice', version: '2.0.2', description: 'Read-only D&D dice roller MCP server (no write actions).' },
+  undefined,
   { basePath: '/api' }
 );
 
