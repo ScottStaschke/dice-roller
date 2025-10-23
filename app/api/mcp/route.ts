@@ -93,10 +93,11 @@ const InputSchema = z.object({
 
 const handler = createMcpHandler(
   (server) => {
+    // mcp-handler v1 signature: name, paramsShape, annotations, callback
     server.tool(
       'roll_dice',
-      'Rolls D&D-style dice from notation (supports adv/dis, modifiers, kh/kl/dh/dl, multi-term).',
       InputSchema.shape,
+      { title: 'D&D dice roller (read-only)', readOnlyHint: true },
       async ({ notation }) => {
         const parsed = parseNotation(notation);
         let total = 0;
@@ -117,20 +118,31 @@ const handler = createMcpHandler(
           }
           const r = rollTerm(t);
           total += r.subtotal;
-          details.push({ type: 'dice', sides: t.sides, count: t.count, rolls: r.rolls.map(x => x.value), subtotal: r.subtotal });
+          details.push({
+            type: 'dice',
+            sides: t.sides,
+            count: t.count,
+            keep: (t as any).keep ?? null,
+            drop: (t as any).drop ?? null,
+            rolls: r.rolls.map(x => x.value),
+            usedIndices: r.used,
+            subtotal: r.subtotal
+          });
         }
 
         const text = `Expression: ${notation}\nTotal: ${total}`;
+        // mcp-handler v1 content types do not include a 'json' variant; include JSON as text and structuredContent
         return {
           content: [
             { type: 'text', text },
-            { type: 'json', json: { notation, total, details } }
+            { type: 'text', text: JSON.stringify({ notation, total, details }) }
           ],
+          structuredContent: { notation, total, details }
         };
       }
     );
   },
-  { name: 'mcp-dice', version: '2.0.0', description: 'Read-only D&D dice roller MCP server (no write actions).' },
+  { name: 'mcp-dice', version: '2.0.2', description: 'Read-only D&D dice roller MCP server (no write actions).' },
   { basePath: '/api' }
 );
 
