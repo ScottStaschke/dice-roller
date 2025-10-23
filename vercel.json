@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "api/mcp/route": {
+      "maxDuration": 60
+    }
+  }
+}
